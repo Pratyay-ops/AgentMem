@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentmem"
+version = "0.1.0"
+description = "A tiered, storage-agnostic memory layer for LLM agents (working / semantic / episodic / procedural), with bring-your-own-storage via ports and adapters."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+keywords = ["llm", "agents", "memory", "rag", "semantic-memory", "episodic-memory", "vector-search"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+# The CORE has ONE dependency, on purpose. No web framework, no LLM SDK, no
+# database driver: the library owns the memory *model*, you bring the storage.
+# pydantic is the single universal dependency (the document shapes). Everything
+# that talks to a real backend is an OPTIONAL extra below and is imported lazily,
+# so `import agentmem` needs nothing but pydantic.
+dependencies = ["pydantic>=2"]
+
+[project.optional-dependencies]
+# Reference adapters for infrastructure you already run. Install only the ones you
+# use; each driver is imported lazily inside its adapter, never at package import.
+postgres = ["psycopg[binary]>=3"]          # PostgresDocStore (JSONB documents)
+mongodb = ["pymongo>=4"]                    # MongoDocStore (MongoDB / AWS DocumentDB)
+opensearch = ["opensearch-py>=2"]           # OpenSearchVectorStore (kNN)
+test = ["pytest", "pytest-asyncio"]
+
+# The import name maps to the repo root, so a consumer that vendors this as a
+# submodule directory named `agentmem/` resolves `import agentmem.*` with no install
+# step, and a `pip install` resolves the same name.
+[tool.setuptools]
+package-dir = { "agentmem" = "." }
+packages = ["agentmem", "agentmem.memory", "agentmem.memory.adapters"]
+
+[tool.setuptools.package-data]
+# Ship the inline type information (PEP 561) so downstream type-checkers see it.
+agentmem = ["py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
