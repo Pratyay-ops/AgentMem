@@ -1,4 +1,4 @@
-# agentmem — tiered memory for LLM agents
+# AgentMem — tiered memory for LLM agents
 
 A **storage-agnostic** memory layer for LLM agents. The library owns the memory
 *model*; **you** own the databases. Point it at infrastructure you already run and
